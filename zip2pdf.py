@@ -111,7 +111,7 @@ class CodePDF(FPDF):
             self.set_text_color(150, 150, 150)
             self.cell(25, line_height, f"{i:4d}", align='R')
             
-            # Code content
+            # Code content - use constrained width to stay within margins
             self.set_text_color(40, 40, 40)
             # Truncate line if too long
             display_line = line
@@ -121,7 +121,8 @@ class CodePDF(FPDF):
             # Replace tabs with spaces and encode for latin-1
             display_line = display_line.replace('\t', '    ')
             display_line = display_line.encode('latin-1', 'replace').decode('latin-1')
-            self.cell(0, line_height, display_line)
+            # Use fixed width: avail_width minus line_number_width (25)
+            self.cell(avail_width - 25, line_height, display_line)
             self.ln(line_height)
         
         self.ln(15)
