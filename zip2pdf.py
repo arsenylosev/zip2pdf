@@ -47,17 +47,21 @@ SAFETY_MARGIN = 0.9  # Target 90% of max to leave room for PDF overhead
 
 
 class CodePDF(FPDF):
-    """PDF generator with code formatting."""
+    """PDF generator with code formatting and Unicode support."""
     
     def __init__(self):
         super().__init__(unit='pt', format='A4')
         self.set_auto_page_break(auto=True, margin=50)
         self.set_margins(50, 50, 50)
+        # Add Unicode fonts for Cyrillic support (uni=True is deprecated, now default)
+        self.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf')
+        self.add_font('DejaVu', 'B', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf')
+        self.add_font('DejaVuMono', '', '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf')
         
     def header(self):
         """Add page header."""
         if self.page_no() > 1:
-            self.set_font('Helvetica', '', 8)
+            self.set_font('DejaVu', '', 8)
             self.set_text_color(128, 128, 128)
             self.cell(0, 20, f"Page {self.page_no()}", align='R',
                      new_x=XPos.LMARGIN, new_y=YPos.NEXT)
@@ -65,10 +69,9 @@ class CodePDF(FPDF):
     
     def add_file_header(self, filepath: str, file_size: int):
         """Add a file section header."""
-        self.set_font('Helvetica', 'B', 10)
+        self.set_font('DejaVu', 'B', 10)
         self.set_text_color(50, 100, 150)
-        safe_path = filepath.encode('latin-1', 'replace').decode('latin-1')
-        self.cell(0, 20, f"[FILE] {safe_path} ({format_size(file_size)})",
+        self.cell(0, 20, f"[FILE] {filepath} ({format_size(file_size)})",
                  new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         self.set_draw_color(200, 200, 200)
         self.line(50, self.get_y(), 545, self.get_y())
@@ -76,8 +79,8 @@ class CodePDF(FPDF):
         
     def add_code_block(self, code: str, lexer_name: str = 'text'):
         """Add syntax-highlighted code using monospace font."""
-        # Use built-in Courier for monospace
-        self.set_font('Courier', '', 7)
+        # Use DejaVu Mono for monospace with Unicode support
+        self.set_font('DejaVuMono', '', 7)
         self.set_text_color(40, 40, 40)
         
         # Calculate available width
@@ -108,24 +111,24 @@ class CodePDF(FPDF):
                          len(lines[i-1:]) * line_height + 15, style='F')
             
             # Line number
+            self.set_font('DejaVuMono', '', 7)
             self.set_text_color(150, 150, 150)
             self.cell(25, line_height, f"{i:4d}", align='R')
             
             # Code content - use constrained width to stay within margins
             self.set_text_color(40, 40, 40)
             
-            # Replace tabs with spaces and encode for latin-1 first
+            # Replace tabs with spaces
             display_line = line.replace('\t', '    ')
-            display_line = display_line.encode('latin-1', 'replace').decode('latin-1')
             
             # Truncate if too long - use 100 chars max for safety
-            # (Courier 7pt at 495pt width ~ 100 chars)
+            # (DejaVu Mono 7pt at 495pt width ~ 100 chars)
             max_chars = 100
             if len(display_line) > max_chars:
                 display_line = display_line[:max_chars-3] + '...'
             
-            # Use fixed width: avail_width minus line_number_width (25)
-            code_width = avail_width - 30  # extra safety margin
+            # Use fixed width: avail_width minus line_number_width (25) minus safety margin
+            code_width = avail_width - 30
             self.cell(code_width, line_height, display_line)
             self.ln(line_height)
         
@@ -249,17 +252,17 @@ def create_pdf(zip_path: str, output_path: str) -> Tuple[bool, str]:
     pdf.add_page()
     
     # Table of contents (first page)
-    pdf.set_font('Helvetica', 'B', 16)
+    pdf.set_font('DejaVu', 'B', 16)
     pdf.set_text_color(50, 100, 150)
     pdf.cell(0, 20, f"Files Included ({len(files_to_include)})",
              new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.ln(5)
     
     # Source info
-    pdf.set_font('Helvetica', '', 9)
+    pdf.set_font('DejaVu', '', 9)
     pdf.set_text_color(100, 100, 100)
-    safe_name = os.path.basename(zip_path).encode('latin-1', 'replace').decode('latin-1')
-    pdf.cell(0, 12, f"Source: {safe_name}",
+    source_name = os.path.basename(zip_path)
+    pdf.cell(0, 12, f"Source: {source_name}",
              new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.cell(0, 12, f"Total: {format_size(sum(f[1] for f in files_to_include))}",
              new_x=XPos.LMARGIN, new_y=YPos.NEXT)
@@ -272,12 +275,11 @@ def create_pdf(zip_path: str, output_path: str) -> Tuple[bool, str]:
     pdf.ln(10)
     
     # File list
-    pdf.set_font('Helvetica', '', 9)
+    pdf.set_font('DejaVu', '', 9)
     pdf.set_text_color(60, 60, 60)
     for filepath, size, _ in files_to_include:
         display_path = filepath[:70] + '...' if len(filepath) > 70 else filepath
-        safe_path = display_path.encode('latin-1', 'replace').decode('latin-1')
-        pdf.cell(0, 12, f"- {safe_path} ({format_size(size)})",
+        pdf.cell(0, 12, f"- {display_path} ({format_size(size)})",
                  new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     
     # File contents
