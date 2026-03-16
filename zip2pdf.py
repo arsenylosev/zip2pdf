@@ -78,7 +78,7 @@ class CodePDF(FPDF):
         self.ln(5)
         
     def add_code_block(self, code: str, lexer_name: str = 'text'):
-        """Add syntax-highlighted code using monospace font."""
+        """Add syntax-highlighted code using monospace font with line wrapping."""
         # Use DejaVu Mono for monospace with Unicode support
         self.set_font('DejaVuMono', '', 7)
         self.set_text_color(40, 40, 40)
@@ -87,49 +87,71 @@ class CodePDF(FPDF):
         page_width = 595  # A4 width in points
         margin = 50
         avail_width = page_width - 2 * margin
+        code_width = avail_width - 30  # space for line numbers + safety
+        
+        # Char width for DejaVu Mono 7pt (~5.5pt per char)
+        char_width = 5.5
+        max_chars_per_line = int(code_width / char_width)
         
         # Split code into lines
-        lines = code.split('\n')
+        raw_lines = code.split('\n')
         line_height = 10
         
-        # Add subtle background for code
+        # Process lines with wrapping
+        processed_lines = []  # (is_continuation, text, line_num or None)
+        for i, line in enumerate(raw_lines, 1):
+            # Replace tabs with spaces
+            display_line = line.replace('\t', '    ')
+            
+            if len(display_line) <= max_chars_per_line:
+                processed_lines.append((False, display_line, i))
+            else:
+                # Split long line into chunks
+                chunks = []
+                for j in range(0, len(display_line), max_chars_per_line):
+                    chunk = display_line[j:j + max_chars_per_line]
+                    chunks.append(chunk)
+                # First chunk gets the line number
+                processed_lines.append((False, chunks[0], i))
+                # Continuation chunks have no line number
+                for chunk in chunks[1:]:
+                    processed_lines.append((True, chunk, None))
+        
+        # Add subtle background for code block
         start_y = self.get_y()
-        total_height = len(lines) * line_height + 20
+        total_height = len(processed_lines) * line_height + 20
         
         self.set_fill_color(250, 250, 250)
         self.rect(margin - 5, start_y, avail_width + 10, total_height, style='F')
         
         self.set_xy(margin, start_y + 10)
         
-        for i, line in enumerate(lines, 1):
+        for is_cont, text, line_num in processed_lines:
             # Check for page break
             if self.get_y() > 750:
                 self.add_page()
                 self.set_xy(margin, 50)
                 self.set_fill_color(250, 250, 250)
+                # Recalculate remaining height
+                remaining = len(processed_lines) - processed_lines.index((is_cont, text, line_num))
                 self.rect(margin - 5, self.get_y() - 5, avail_width + 10, 
-                         len(lines[i-1:]) * line_height + 15, style='F')
+                         remaining * line_height + 15, style='F')
             
-            # Line number
             self.set_font('DejaVuMono', '', 7)
-            self.set_text_color(150, 150, 150)
-            self.cell(25, line_height, f"{i:4d}", align='R')
             
-            # Code content - use constrained width to stay within margins
-            self.set_text_color(40, 40, 40)
+            if is_cont:
+                # Continuation line - no number, subtle indent indicator
+                self.set_text_color(200, 200, 200)
+                self.cell(25, line_height, "  ↳", align='R')
+                self.set_text_color(100, 100, 100)  # Slightly dimmed for wrapped content
+                self.cell(code_width, line_height, text)
+            else:
+                # Regular line with number
+                self.set_text_color(150, 150, 150)
+                self.cell(25, line_height, f"{line_num:4d}", align='R')
+                self.set_text_color(40, 40, 40)
+                self.cell(code_width, line_height, text)
             
-            # Replace tabs with spaces
-            display_line = line.replace('\t', '    ')
-            
-            # Truncate if too long - use 100 chars max for safety
-            # (DejaVu Mono 7pt at 495pt width ~ 100 chars)
-            max_chars = 100
-            if len(display_line) > max_chars:
-                display_line = display_line[:max_chars-3] + '...'
-            
-            # Use fixed width: avail_width minus line_number_width (25) minus safety margin
-            code_width = avail_width - 30
-            self.cell(code_width, line_height, display_line)
             self.ln(line_height)
         
         self.ln(15)
