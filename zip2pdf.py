@@ -238,41 +238,35 @@ def create_pdf(zip_path: str, output_path: str) -> Tuple[bool, str]:
     # Sort files by path for consistent ordering
     files_to_include.sort(key=lambda x: x[0])
     
-    # Generate PDF
+    # Generate PDF - start with table of contents
     print(f"\n📝 Generating PDF with {len(files_to_include)} files...")
     pdf = CodePDF()
     pdf.add_page()
     
-    # Title page
-    pdf.set_font('Helvetica', 'B', 24)
+    # Table of contents (first page)
+    pdf.set_font('Helvetica', 'B', 16)
     pdf.set_text_color(50, 100, 150)
-    pdf.ln(200)
-    pdf.cell(0, 40, "Code Archive", align='C',
+    pdf.cell(0, 20, f"Files Included ({len(files_to_include)})",
              new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.ln(5)
     
-    pdf.set_font('Helvetica', '', 12)
-    pdf.set_text_color(80, 80, 80)
+    # Source info
+    pdf.set_font('Helvetica', '', 9)
+    pdf.set_text_color(100, 100, 100)
     safe_name = os.path.basename(zip_path).encode('latin-1', 'replace').decode('latin-1')
-    pdf.cell(0, 20, f"Source: {safe_name}", align='C',
+    pdf.cell(0, 12, f"Source: {safe_name}",
              new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(0, 20, f"Files: {len(files_to_include)}", align='C',
+    pdf.cell(0, 12, f"Total: {format_size(sum(f[1] for f in files_to_include))}",
              new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(0, 20, f"Total size: {format_size(sum(f[1] for f in files_to_include))}", 
-             align='C', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     
     if len(files_to_include) < len(all_files):
         pdf.set_text_color(200, 100, 100)
-        pdf.cell(0, 20, f"({len(all_files) - len(files_to_include)} files excluded for size)", 
-                 align='C', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 12, f"Note: {len(all_files) - len(files_to_include)} files excluded for size limit",
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     
-    # Table of contents
-    pdf.add_page()
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.set_text_color(50, 100, 150)
-    pdf.cell(0, 30, "Files Included",
-             new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.ln(10)
     
+    # File list
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(60, 60, 60)
     for filepath, size, _ in files_to_include:
