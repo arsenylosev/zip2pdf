@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Панель управления — Вииртуоз{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block topbar_title %}Панель управления{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/dashboard-home.css') }}" />
+{% endblock %}
+{% block content %}
+<div class="dh-wrap" data-username="{{ username }}">
+  <section class="dh-welcome">
+    <h1>Добро пожаловать, {{ username }} 👋</h1>
+    <p>Выберите раздел для управления ресурсами.</p>
+  </section>
+
+  <a href="/{{ username }}/spend" class="dh-card dh-card-balance">
+    <div class="dh-card-head">
+      <h2>Баланс</h2>
+      <span class="dh-card-link">Подробнее в Расходах →</span>
+    </div>
+    <div class="dh-balance-grid">
+      <div>
+        <div class="dh-stat-label">Основной баланс</div>
+        <div class="dh-stat-value" id="dh-main-balance">—</div>
+      </div>
+      <div>
+        <div class="dh-stat-label">Инференс баланс</div>
+        <div class="dh-stat-value" id="dh-llm-balance">—</div>
+      </div>
+    </div>
+    <div class="dh-transfer" onclick="event.preventDefault();event.stopPropagation();">
+      <div class="dh-transfer-head">Перевод средств</div>
+      <div class="dh-transfer-row">
+        <select id="dh-transfer-direction">
+          <option value="main-llm">Осн. → Инференс</option>
+          <option value="llm-main">Инференс → Осн.</option>
+        </select>
+        <input id="dh-transfer-amount" type="number" min="0.01" step="0.01" placeholder="Сумма" />
+        <button id="dh-transfer-all" type="button" class="btn-secondary">Всё</button>
+        <button id="dh-transfer-submit" type="button" class="btn-primary">Перевести</button>
+      </div>
+      <div id="dh-transfer-error" class="dh-transfer-error" hidden></div>
+    </div>
+  </a>
+
+  <a href="/{{ username }}/vms" class="dh-card">
+    <div class="dh-card-head">
+      <h2>Виртуальные машины</h2>
+      <span class="dh-card-link">Управление ВМ →</span>
+    </div>
+    <div class="dh-vm-stats">
+      <div class="dh-stat-label">Машины (Всего/Вкл)</div>
+      <div class="dh-stat-value"><span id="dh-vm-total">—</span> / <span id="dh-vm-running">—</span></div>
+    </div>
+  </a>
+
+  <a href="/{{ username }}/llm" class="dh-card">
+    <div class="dh-card-head">
+      <h2>Инференс</h2>
+      <span class="dh-card-link">Перейти в чат →</span>
+    </div>
+    <div class="dh-quickstart" onclick="event.preventDefault();event.stopPropagation();">
+      <div class="dh-quickstart-head">
+        <strong>Быстрый старт (API)</strong>
+        <div class="dh-quickstart-actions">
+          <button id="dh-copy-snippet" type="button" class="btn-secondary">Копировать</button>
+          <div class="dh-tabs" role="tablist">
+            <button type="button" class="dh-tab active" data-lang="python">Python</button>
+            <button type="button" class="dh-tab" data-lang="typescript">TypeScript</button>
+            <button type="button" class="dh-tab" data-lang="curl">cURL</button>
+          </div>
+        </div>
+      </div>
+      <pre id="dh-snippet" class="dh-code"></pre>
+    </div>
+  </a>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/dashboard-home.js') }}"></script>
+{% endblock %}

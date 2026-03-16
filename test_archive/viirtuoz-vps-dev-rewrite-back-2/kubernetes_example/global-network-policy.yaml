@@ -1,0 +1,51 @@
+---
+# GlobalNetworkPolicy to deny VM pods access to internal networks
+# This policy applies to all VM pods (pods with kubevirt.io/domain label)
+# across all namespaces
+
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: vm-deny-internal-networks
+  labels:
+    app: kubevirt-api-manager
+    policy-type: vm-network-restriction
+spec:
+  # Select VM pods only (pods with kubevirt.io/domain label)
+  selector: has(kubevirt.io/domain)
+  
+  # Lower order = higher priority
+  order: 1000
+  
+  types:
+    - Ingress
+    - Egress
+  
+  ingress:
+    # Allow all incoming traffic to VMs
+    - action: Allow
+  
+  egress:
+    # Deny egress to Pod network (default: 10.244.0.0/16)
+    # Update POD_NETWORK_CIDR in config.py if your pod network is different
+    - action: Deny
+      destination:
+        nets:
+          - "192.168.192.0/18"  # Pod network CIDR
+    
+    # Deny egress to Service network (default: 10.96.0.0/12)
+    # Update SERVICE_NETWORK_CIDR in config.py if your service network is different
+    - action: Deny
+      destination:
+        nets:
+          - "10.96.0.0/18"  # Service network CIDR
+    
+    # Deny egress to server networks
+    # Update SERVER_NETWORK_CIDRS in config.py with your server network CIDRs
+    - action: Deny
+      destination:
+        nets:
+          - "CHANGE-ME"  # Example server network CIDR
+    
+    # Allow all other egress traffic
+    - action: Allow

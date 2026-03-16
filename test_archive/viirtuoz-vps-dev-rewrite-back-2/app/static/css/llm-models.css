@@ -1,0 +1,331 @@
+/* Доступные модели */
+
+.llm-models-page {
+  height: auto;
+  min-height: calc(100vh - 120px);
+}
+
+.llm-subnav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: var(--surface-muted);
+  border-radius: var(--border-radius);
+  width: fit-content;
+}
+
+.llm-subnav-link {
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.llm-subnav-link:hover {
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.llm-subnav-link.active {
+  background: var(--surface);
+  color: var(--brand-blue-mid);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.llm-models-container {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-lg);
+  padding: 24px;
+}
+
+.llm-models-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.llm-models-hint {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.llm-models-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.llm-models-refresh {
+  margin-left: 12px;
+}
+
+.llm-models-loading,
+.llm-models-error {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.llm-models-error {
+  color: var(--status-error);
+}
+
+.llm-models-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.llm-model-card {
+  padding: 16px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.llm-model-card:hover {
+  border-color: var(--brand-blue-mid);
+}
+
+.llm-model-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.llm-model-main {
+  min-width: 0;
+}
+
+.llm-model-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-expand-btn {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.model-expand-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--brand-blue-mid);
+}
+
+.model-expand-btn span {
+  display: inline-block;
+  transform: rotate(0deg);
+  transition: transform 0.15s ease;
+}
+
+.model-expand-btn[aria-expanded="true"] span {
+  transform: rotate(180deg);
+}
+
+.llm-model-card h4 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+}
+
+.llm-model-card .model-source {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--brand-blue-mid);
+  color: white;
+  margin-bottom: 8px;
+}
+
+.llm-model-card .model-source.cudo {
+  background: var(--brand-aqua-mid);
+}
+
+.llm-model-card .model-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.llm-model-card .model-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.model-prices {
+  margin-top: 8px;
+  display: flex;
+  gap: 18px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.model-price-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.model-example {
+  margin-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+  display: none;
+}
+
+.model-example.open {
+  display: block;
+}
+
+.model-example-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.model-example-head strong {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.model-copy-btn {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: var(--border-radius-sm);
+  padding: 5px 9px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.model-code {
+  margin: 0;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  overflow-x: auto;
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* ============================================
+   Keys page - specific overrides
+   ============================================ */
+.llm-keys-page .llm-models-container {
+  max-width: 720px;
+}
+
+.llm-keys-page .llm-models-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.llm-keys-page .llm-models-header h2 {
+  margin: 0;
+}
+
+.llm-keys-page .llm-models-refresh {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.llm-keys-page .llm-models-list {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.llm-keys-page .llm-model-card {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.llm-keys-page .llm-model-card h4 {
+  font-size: 13px;
+  font-weight: 500;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.llm-keys-page .llm-model-card .key-display {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.llm-keys-page .llm-model-card .key-full {
+  color: var(--text-primary);
+}
+
+.llm-keys-page .llm-model-card .model-meta {
+  font-size: 12px;
+}
+
+.llm-keys-page .key-reveal-btn,
+.llm-keys-page .key-delete-btn {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.llm-keys-page .key-reveal-btn:hover,
+.llm-keys-page .key-delete-btn:hover {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.llm-keys-page .key-delete-btn {
+  color: var(--status-error);
+  border-color: var(--status-error);
+}
+
+.llm-keys-page .key-delete-btn:hover {
+  background: var(--status-error-bg);
+}
+
+.llm-keys-page .model-source.cudo {
+  background: var(--text-muted);
+}

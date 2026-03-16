@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubevirt-api-manager
+  namespace: kvm
+  labels:
+    app: kubevirt-api-manager
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30180
+  selector:
+    app: kubevirt-api-manager

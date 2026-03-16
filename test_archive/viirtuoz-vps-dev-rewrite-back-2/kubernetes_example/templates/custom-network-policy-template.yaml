@@ -1,0 +1,172 @@
+---
+# Custom NetworkPolicy Template for VM Namespaces
+# This template allows users to define custom network policies for their VMs
+#
+# Usage:
+# 1. Copy this template to your namespace
+# 2. Customize the rules according to your needs
+# 3. Apply with: kubectl apply -f custom-network-policy.yaml -n <namespace>
+#
+# This policy will be applied in addition to the default vm-namespace-policy
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: custom-vm-network-policy
+  namespace: <NAMESPACE>  # Replace with your namespace
+  labels:
+    app: kubevirt-api-manager
+    policy-type: custom-vm-policy
+spec:
+  # Select VM pods (pods with kubevirt.io/domain label)
+  podSelector:
+    matchExpressions:
+      - key: kubevirt.io/domain
+        operator: Exists
+  
+  policyTypes:
+    - Ingress
+    - Egress
+  
+  ingress:
+    # Example: Allow specific ports from specific sources
+    # Uncomment and customize as needed
+    
+    # - from:
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           name: allowed-namespace
+    #     - podSelector:
+    #         matchLabels:
+    #           app: allowed-app
+    #     - ipBlock:
+    #         cidr: 192.168.1.0/24  # Allow from specific IP range
+    #   ports:
+    #     - protocol: TCP
+    #       port: 22    # SSH
+    #     - protocol: TCP
+    #       port: 80    # HTTP
+    #     - protocol: TCP
+    #       port: 443   # HTTPS
+    
+    # Default: Allow all ingress (can be restricted above)
+    - {}
+  
+  egress:
+    # Example: Allow egress to specific destinations
+    # Uncomment and customize as needed
+    
+    # - to:
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           name: allowed-namespace
+    #     - podSelector:
+    #         matchLabels:
+    #           app: allowed-app
+    #     - ipBlock:
+    #         cidr: 8.8.8.8/32  # Allow to specific IP
+    #   ports:
+    #     - protocol: TCP
+    #       port: 53    # DNS
+    #     - protocol: UDP
+    #       port: 53    # DNS
+    
+    # Example: Deny egress to specific networks
+    # - to:
+    #     - ipBlock:
+    #         cidr: 10.0.0.0/8  # Deny access to private networks
+    #   ports:
+    #     - protocol: TCP
+    #   action: Deny  # Note: This requires a CNI that supports deny actions
+    
+    # Default: Allow all egress (can be restricted above)
+    - {}
+
+---
+# Example: Custom NetworkPolicy with port restrictions
+# This example shows how to allow only specific ports
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: custom-vm-restricted-ports
+  namespace: <NAMESPACE>  # Replace with your namespace
+spec:
+  podSelector:
+    matchExpressions:
+      - key: kubevirt.io/domain
+        operator: Exists
+  
+  policyTypes:
+    - Ingress
+  
+  ingress:
+    # Allow SSH from anywhere
+    - from:
+        - {}
+      ports:
+        - protocol: TCP
+          port: 22
+    
+    # Allow HTTP/HTTPS from anywhere
+    - from:
+        - {}
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+    
+    # Allow custom port from specific namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: trusted-namespace
+      ports:
+        - protocol: TCP
+          port: 8080
+
+---
+# Example: Custom NetworkPolicy with network restrictions
+# This example shows how to restrict egress to specific networks
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: custom-vm-restricted-egress
+  namespace: <NAMESPACE>  # Replace with your namespace
+spec:
+  podSelector:
+    matchExpressions:
+      - key: kubevirt.io/domain
+        operator: Exists
+  
+  policyTypes:
+    - Egress
+  
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+        - podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    
+    # Allow HTTPS to external
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8      # Deny private networks
+              - 172.16.0.0/12   # Deny private networks
+              - 192.168.0.0/16  # Deny private networks
+      ports:
+        - protocol: TCP
+          port: 443

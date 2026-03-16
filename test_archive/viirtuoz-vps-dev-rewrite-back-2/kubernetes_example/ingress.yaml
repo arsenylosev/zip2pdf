@@ -1,0 +1,60 @@
+# Login path - NO Basic Auth (so session-expired redirect works)
+# Must be more specific than / so it matches first
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubevirt-manager-ingress-login
+  namespace: kvm
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - CHANGE-ME.example.com
+      secretName: kubevirt-manager-tls
+  rules:
+    - host: CHANGE-ME.example.com
+      http:
+        paths:
+          - path: /login
+            pathType: Prefix
+            backend:
+              service:
+                name: kubevirt-api-manager
+                port:
+                  number: 80
+---
+# All other paths - WITH Basic Auth
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubevirt-manager-ingress
+  namespace: kvm
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: 'CHANGE-ME.example.com'
+    external-dns.alpha.kubernetes.io/target: 'CHANGE-ME'
+    external-dns.alpha.kubernetes.io/ttl: '3600'
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/auth-realm: 'Enter your credentials'
+    nginx.ingress.kubernetes.io/auth-secret: 'htpasswd'
+    nginx.ingress.kubernetes.io/auth-type: 'basic'
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - CHANGE-ME.example.com
+      secretName: kubevirt-manager-tls
+  rules:
+    - host: CHANGE-ME.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubevirt-api-manager
+                port:
+                  number: 80

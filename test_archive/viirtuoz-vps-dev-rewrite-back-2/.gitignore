@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Локальные конфиги и секреты
+.env
+.env.*
+!.env.example
+app/config.py
+*key
+*.pem
+*.pub
+docker-compose.yml
+
+# Kubernetes (локальные манифесты и секреты)
+kubernetes/
+macvtap*.yaml
+create_nad_for_existing_ns.py
+
+# IDE и ОС
+.cursor
+.trunk
+*.bak
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Stub-mode runtime state
+app/.stub_vms.json
+
+# Сборка и артефакты
+dist/
+build/
+vm-templates/
+driver*/
+*.iso
+auth*
+!app/auth/

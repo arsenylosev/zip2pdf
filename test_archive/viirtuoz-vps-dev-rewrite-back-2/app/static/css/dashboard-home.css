@@ -1,0 +1,165 @@
+.dh-wrap {
+  display: grid;
+  gap: 18px;
+}
+
+.dh-welcome h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dh-welcome p {
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.dh-card {
+  display: block;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-lg);
+  padding: 18px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.dh-card:hover {
+  border-color: var(--brand-blue-mid);
+  box-shadow: var(--shadow-sm);
+}
+
+.dh-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.dh-card-head h2 {
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.dh-card-link {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.dh-balance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dh-stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.dh-stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dh-transfer {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.dh-transfer-head {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.dh-transfer-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(120px, 1fr) auto auto;
+  gap: 8px;
+}
+
+.dh-transfer-row select,
+.dh-transfer-row input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.dh-transfer-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--status-error);
+}
+
+.dh-vm-stats {
+  margin-top: 2px;
+}
+
+.dh-quickstart {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius);
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+
+.dh-quickstart-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dh-quickstart-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dh-tabs {
+  display: inline-flex;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.dh-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px 9px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.dh-tab.active {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.dh-code {
+  margin: 0;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: var(--text-primary);
+  background: transparent;
+}
+
+@media (max-width: 900px) {
+  .dh-transfer-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

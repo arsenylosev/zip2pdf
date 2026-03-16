@@ -1,0 +1,159 @@
+/**
+ * Utility Classes
+ * Common utility classes used across the application
+ * All colors use CSS variables for theme compatibility
+ */
+
+/* ========================================
+   Display Utilities
+   ======================================== */
+
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+.flex-visible {
+  display: flex !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+/* ========================================
+   Text State Utilities
+   ======================================== */
+
+.text-error {
+  color: var(--status-error) !important;
+}
+
+.text-warning {
+  color: var(--status-warning) !important;
+}
+
+.text-success {
+  color: var(--status-success) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+/* ========================================
+   Progress Bar State Utilities
+   ======================================== */
+
+.progress-bar--error {
+  background: var(--status-error) !important;
+}
+
+.progress-bar--warning {
+  background: var(--status-warning) !important;
+}
+
+.progress-bar--success {
+  background: var(--status-success) !important;
+}
+
+/* ========================================
+   Width Control Utilities
+   ======================================== */
+
+.width-auto {
+  width: auto !important;
+}
+
+.width-30 {
+  width: 30% !important;
+}
+
+.width-60 {
+  width: 60% !important;
+}
+
+.width-90 {
+  width: 90% !important;
+}
+
+.width-100 {
+  width: 100% !important;
+}
+
+/* ========================================
+   Cursor Utilities
+   ======================================== */
+
+.cursor-default {
+  cursor: default !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+/* ========================================
+   Component-Specific Utilities
+   ======================================== */
+
+/* Cloud-init icon */
+.cloudinit-icon {
+  margin-left: 8px;
+}
+
+/* SSH Service components */
+.ssh-service-btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  width: auto;
+  height: auto;
+}
+
+.ssh-service-info {
+  color: var(--text-secondary);
+}
+
+.ssh-nodeport {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Auto-resize textarea */
+.auto-resize {
+  overflow: hidden;
+  resize: none;
+}
+
+/* Page balance highlight box (VM main balance, LLM balance) */
+.page-balance-box {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 6px;
+  background: var(--surface-muted, #f8fafc);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+/* Push balance to the right half of the header */
+.page-balance-right {
+  margin-left: auto;
+}
+
+[data-theme="dark"] .page-balance-box {
+  border-color: var(--border-subtle);
+  background: var(--bg-muted, #1e293b);
+}

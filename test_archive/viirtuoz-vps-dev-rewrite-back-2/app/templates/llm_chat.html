@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}LLM-инференс — Вииртуоз{% endblock %}
+{% block nav_llm %}active{% endblock %}
+{% block topbar_title %}LLM-инференс{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/chat-common.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/llm-chat.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/llm-models.css') }}" />
+{% include 'highlight_js_block.html' %}
+{% endblock %}
+{% block content %}
+<div class="llm-page" data-username="{{ username }}" data-llm-default-model="{{ llm_default_model|default('') }}">
+  <div class="llm-subnav">
+    <a href="/{{ username }}/llm" class="llm-subnav-link active">Чат</a>
+    <a href="/{{ username }}/llm/models" class="llm-subnav-link">Модели</a>
+    <a href="/{{ username }}/llm/keys" class="llm-subnav-link">Ключи API</a>
+  </div>
+
+  <div class="llm-playground">
+    <div class="chat-layout">
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="chat-title">
+          <div class="chat-title-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="7.5 4.21 12 6.81 16.5 4.21" />
+              <polyline points="7.5 19.79 7.5 14.6 3 12" />
+              <polyline points="21 12 16.5 14.6 16.5 19.79" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+          </div>
+          <div><h3>Чат</h3></div>
+        </div>
+        <button class="chat-clear-btn" id="chat-clear-btn" title="Очистить чат">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-welcome">
+          <div class="chat-welcome-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="7.5 4.21 12 6.81 16.5 4.21" />
+              <polyline points="7.5 19.79 7.5 14.6 3 12" />
+              <polyline points="21 12 16.5 14.6 16.5 19.79" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+          </div>
+          <h3>Добро пожаловать в LLM-чат</h3>
+          <p>Задайте вопрос по виртуализации, Linux, DevOps или Kubernetes.</p>
+          <div class="chat-suggestions">
+            <button class="suggestion-btn" data-suggestion="Как проверить загрузку CPU и RAM на Linux?">Мониторинг CPU/RAM</button>
+            <button class="suggestion-btn" data-suggestion="Как быстро настроить SSH-ключи на сервере?">Настроить SSH-ключи</button>
+            <button class="suggestion-btn" data-suggestion="Как развернуть Docker Compose сервис на VPS?">Docker Compose на VPS</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <textarea id="chat-input" class="chat-input" placeholder="Спросите что-нибудь..." rows="1"></textarea>
+        <button class="chat-send-btn" id="chat-send-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="chat-settings-drawer" id="chat-settings-drawer">
+        <aside
+          id="chat-settings-panel"
+          class="playground-settings"
+          aria-label="Параметры генерации"
+        >
+          <div class="settings-header">
+            <h4>Настройки</h4>
+            <div class="settings-actions">
+              <button type="button" id="chat-settings-reset" class="settings-reset-btn">Сбросить</button>
+            </div>
+          </div>
+          <p class="settings-caption">Подберите модель и параметры ответа. Изменения применяются к следующему запросу.</p>
+
+          <section class="settings-section" aria-labelledby="settings-model-title">
+            <h5 id="settings-model-title">Model</h5>
+            <div class="playground-field">
+              <label for="chat-model-select">Модель</label>
+              <select id="chat-model-select" class="chat-model-select" title="Выберите модель">
+                <option value="">Загрузка…</option>
+              </select>
+            </div>
+          </section>
+
+          <section class="settings-section" aria-labelledby="settings-generation-title">
+            <h5 id="settings-generation-title">Generation</h5>
+            <div class="playground-field">
+              <div class="playground-field-head">
+                <label for="chat-temperature">Temperature</label>
+                <span class="value-chip" id="chat-temperature-value">0.7</span>
+              </div>
+              <input id="chat-temperature" type="range" min="0" max="2" step="0.1" value="0.7" />
+              <div class="playground-field-meta">
+                <span>Точнее</span>
+                <span>Креативнее</span>
+              </div>
+            </div>
+            <div class="playground-field">
+              <div class="playground-field-head">
+                <label for="chat-max-tokens">Output Length</label>
+                <span class="value-chip" id="chat-max-tokens-value">2048</span>
+              </div>
+              <input id="chat-max-tokens" type="range" min="256" max="8192" step="256" value="2048" />
+              <div class="playground-field-meta">
+                <span>Коротко</span>
+                <span>Подробно</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-section" aria-labelledby="settings-presets-title">
+            <h5 id="settings-presets-title">Пресеты</h5>
+            <div class="settings-presets" role="group" aria-label="Быстрые пресеты параметров">
+              <button type="button" class="settings-preset-btn" data-temp="0.2" data-tokens="1024">Точный</button>
+              <button type="button" class="settings-preset-btn" data-temp="0.7" data-tokens="2048">Сбаланс.</button>
+              <button type="button" class="settings-preset-btn" data-temp="1.2" data-tokens="4096">Креатив</button>
+            </div>
+          </section>
+        </aside>
+    </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/llm-chat.js') }}"></script>
+{% endblock %}

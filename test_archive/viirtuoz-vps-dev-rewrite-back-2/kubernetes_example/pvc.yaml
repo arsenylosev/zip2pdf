@@ -1,0 +1,15 @@
+# Superseded by volumeClaimTemplates in StatefulSet (config-volume, your-SC).
+# Kept for reference only. Do not apply unless not using StatefulSet.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubevirt-api-config
+  namespace: kvm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: your-SC

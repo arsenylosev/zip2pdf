@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Вииртуоз{% endblock %}</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', path='images/favicon.png') }}"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/dashboard-layout.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/utilities.css') }}"
+    />
+    {% block extra_css %}{% endblock %}
+    <script src="{{ url_for('static', path='js/core/theme.js') }}"></script>
+  </head>
+  <body data-username="{{ username }}" data-page="{{ page|default('') }}">
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <a href="/{{ username }}/dashboard" class="logo-link">
+            <img
+              src="{{ url_for('static', path='images/viiruoz.png') }}"
+              alt="Вииртуоз"
+              class="logo-img"
+            />
+          </a>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a
+                href="/{{ username }}/dashboard"
+                class="nav-link {% block nav_dashboard %}{% endblock %}"
+              >
+                <svg
+                  class="nav-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                <span>Панель управления</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                href="/{{ username }}/vms"
+                class="nav-link {% block nav_vms %}{% endblock %}"
+              >
+                <svg
+                  class="nav-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <path d="M8 21h8" />
+                  <path d="M12 17v4" />
+                </svg>
+                <span>Виртуальные машины</span>
+              </a>
+            </li>
+            <li class="nav-item nav-item-llm {% if page == 'llm' %}is-active{% endif %}">
+              <button
+                type="button"
+                class="nav-link nav-link-accordion {% block nav_llm %}{% endblock %}"
+                id="llm-nav-trigger"
+                aria-expanded="{% if page == 'llm' %}true{% else %}false{% endif %}"
+                aria-controls="llm-submenu"
+              >
+                <svg
+                  class="nav-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                  />
+                  <polyline points="7.5 4.21 12 6.81 16.5 4.21" />
+                  <polyline points="7.5 19.79 7.5 14.6 3 12" />
+                  <polyline points="21 12 16.5 14.6 16.5 19.79" />
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                  <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+                <span>LLM-инференс</span>
+                <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+              <ul class="nav-submenu {% if page == 'llm' %}submenu-open{% endif %}" id="llm-submenu">
+                <li>
+                  <a href="/{{ username }}/llm" class="nav-sublink">Чат</a>
+                </li>
+                <li>
+                  <a href="/{{ username }}/llm/models" class="nav-sublink">Модели</a>
+                </li>
+                <li>
+                  <a href="/{{ username }}/llm/keys" class="nav-sublink">API ключи</a>
+                </li>
+              </ul>
+            </li>
+            {% if is_admin|default(false) %}
+            <li class="nav-item">
+              <a href="/admin/users" class="nav-link {% block nav_admin %}{% endblock %}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span>Пользователи</span>
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a
+                href="{{ '/admin/llm-spend' if is_admin|default(false) else '/' + username + '/spend' }}"
+                class="nav-link {% block nav_spend %}{% endblock %}"
+              >
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 3v18h18" />
+                  <path d="M7 14l4-4 3 3 5-6" />
+                </svg>
+                <span>Расходы</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-info-sidebar">
+            <div class="user-avatar">
+              {{ username[:2]|upper if username else 'U' }}
+            </div>
+            <div class="user-details">
+              <span class="user-name-sidebar">{{ username }}</span>
+              <span class="user-namespace">{{ namespace }}</span>
+            </div>
+          </div>
+          <button class="sidebar-collapse-toggle" id="sidebar-collapse-toggle" type="button" aria-label="Свернуть панель">
+            <svg class="icon-collapse-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            <svg class="icon-collapse-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="main-wrapper">
+        <!-- Top Header -->
+        <header class="topbar">
+          <button
+            class="menu-toggle"
+            id="menu-toggle"
+            aria-label="Открыть меню"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
+          <div class="topbar-title">
+            {% block topbar_title %}Панель управления{% endblock %}
+          </div>
+
+          <div class="topbar-actions">
+            <div class="topbar-balance topbar-balance-pill">
+              <span class="topbar-balance-label">Основной баланс:</span>
+              <span class="topbar-balance-value" id="topbar-main-balance-value">—</span>
+            </div>
+            <div class="topbar-balance topbar-balance-pill">
+              <span class="topbar-balance-label">Инференс баланс:</span>
+              <span class="topbar-balance-value" id="topbar-llm-balance-value">—</span>
+            </div>
+            {% if page == 'spend' %}
+            <button class="btn-secondary btn-balance-transfer-trigger" id="open-balance-transfer" type="button">
+              Перевод
+            </button>
+            <div id="balance-transfer-panel" class="balance-transfer-panel" hidden>
+              <div class="balance-transfer-header">
+                <h3 id="balance-transfer-title">Перевод баланса</h3>
+                <button id="balance-transfer-close" class="balance-transfer-close-btn" type="button" aria-label="Закрыть">×</button>
+              </div>
+              <div class="balance-transfer-summary">
+                <p><strong>Основной:</strong> <span id="balance-transfer-main">—</span></p>
+                <p><strong>LLM:</strong> <span id="balance-transfer-llm">—</span></p>
+              </div>
+              <div class="balance-transfer-form">
+                <select id="balance-transfer-direction">
+                  <option value="main-llm">Основной → LLM</option>
+                  <option value="llm-main">LLM → Основной</option>
+                </select>
+                <input type="number" id="balance-transfer-amount" step="0.01" min="0.01" placeholder="Сумма" />
+                <label class="balance-transfer-all-label"><input type="checkbox" id="balance-transfer-all" /> Всё</label>
+                <button id="balance-transfer-submit" class="btn-primary" type="button">Перевести</button>
+              </div>
+              <div id="balance-transfer-error" class="balance-transfer-error" hidden></div>
+            </div>
+            {% endif %}
+            <div class="user-chip" id="user-chip">
+              <div class="user-avatar-small" id="user-avatar">
+                {{ username[:2]|upper if username else 'U' }}
+              </div>
+              <span class="user-email">{{ username }}</span>
+              <svg
+                class="dropdown-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+            <div class="user-dropdown" id="user-dropdown">
+              <div class="dropdown-header">
+                <strong id="user-name" data-username="{{ username }}"
+                  >{{ username }}</strong
+                >
+                <span id="project-name">{{ namespace }}</span>
+              </div>
+              <div class="dropdown-divider"></div>
+              <button id="logout-btn" class="dropdown-item logout-item">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Выход
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="main-content">{% block content %}{% endblock %}</main>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+    <!-- Core Modules (loaded globally) -->
+    <script src="{{ url_for('static', path='js/core/app-state.js') }}"></script>
+    <script src="{{ url_for('static', path='js/core/windows-logic.js') }}"></script>
+    <script src="{{ url_for('static', path='js/core/ui-components.js') }}?v=20260303"></script>
+    <script src="{{ url_for('static', path='js/core/vm-actions.js') }}"></script>
+    <script src="{{ url_for('static', path='js/core/utils.js') }}"></script>
+    <script>
+    (function() {
+      var appState = window.AppState;
+      if (!appState) return;
+      var fallbackUsername = document.body ? (document.body.dataset.username || '') : '';
+      var fallbackPage = document.body ? (document.body.dataset.page || '') : '';
+      var namespaceEl = document.getElementById('project-name');
+      var mainBalanceValueEl = document.getElementById('topbar-main-balance-value');
+      var llmBalanceValueEl = document.getElementById('topbar-llm-balance-value');
+      var transferPanel = document.getElementById('balance-transfer-panel');
+      var transferOpenBtn = document.getElementById('open-balance-transfer');
+      var transferCloseBtn = document.getElementById('balance-transfer-close');
+      var transferMainEl = document.getElementById('balance-transfer-main');
+      var transferLlmEl = document.getElementById('balance-transfer-llm');
+      var transferDirectionEl = document.getElementById('balance-transfer-direction');
+      var transferAmountEl = document.getElementById('balance-transfer-amount');
+      var transferAllEl = document.getElementById('balance-transfer-all');
+      var transferSubmitEl = document.getElementById('balance-transfer-submit');
+      var transferErrorEl = document.getElementById('balance-transfer-error');
+
+      appState.setState({
+        profile: {
+          username: fallbackUsername,
+          namespace: namespaceEl ? (namespaceEl.textContent || '').trim() : '',
+        },
+      }, 'baseProfileInit');
+
+      if (!fallbackUsername || !mainBalanceValueEl || !llmBalanceValueEl) return;
+
+      var isLoading = false;
+      var balanceRefreshInterval = null;
+
+      function renderBalances(stateSnapshot) {
+        if (!stateSnapshot || !stateSnapshot.balances) return;
+        mainBalanceValueEl.textContent = appState.formatMoney(stateSnapshot.balances.mainBalance);
+        llmBalanceValueEl.textContent = appState.formatMoney(stateSnapshot.balances.llmBalance);
+      }
+
+      function parseApiError(detail) {
+        if (!detail) return null;
+        if (typeof detail === 'string') return detail;
+        if (Array.isArray(detail) && detail.length > 0) {
+          return detail.map(function(e) {
+            if (e && (e.msg || e.message)) return e.msg || e.message;
+            return 'Ошибка валидации';
+          }).join('; ');
+        }
+        if (typeof detail === 'object' && (detail.msg || detail.message)) return detail.msg || detail.message;
+        return String(detail);
+      }
+
+      function setTransferError(msg) {
+        if (!transferErrorEl) return;
+        if (!msg) {
+          transferErrorEl.hidden = true;
+          transferErrorEl.textContent = '';
+          return;
+        }
+        transferErrorEl.hidden = false;
+        transferErrorEl.textContent = msg;
+      }
+
+      function renderTransferBalances(stateSnapshot) {
+        if (!transferMainEl || !transferLlmEl) return;
+        if (!stateSnapshot || !stateSnapshot.balances) return;
+        transferMainEl.textContent = appState.formatMoney(stateSnapshot.balances.mainBalance);
+        transferLlmEl.textContent = appState.formatMoney(stateSnapshot.balances.llmBalance);
+      }
+
+      function refreshTransferBalances() {
+        return appState.loadBalances(username)
+          .then(function(data) {
+            if (!data) return null;
+            var snapshot = appState.getState();
+            renderTransferBalances(snapshot);
+            renderBalances(snapshot);
+            return snapshot;
+          })
+          .catch(function() {
+            setTransferError('Не удалось загрузить баланс');
+            return null;
+          });
+      }
+
+      function openTransferModal() {
+        if (!transferPanel) return;
+        transferPanel.hidden = false;
+        setTransferError(null);
+        refreshTransferBalances();
+      }
+
+      function closeTransferModal() {
+        if (!transferPanel) return;
+        transferPanel.hidden = true;
+        setTransferError(null);
+      }
+
+      function refreshBalance() {
+        if (isLoading) return;
+        isLoading = true;
+        appState.loadBalances(fallbackUsername)
+          .then(function() {
+            renderBalances(appState.getState());
+          })
+          .catch(function() {
+            mainBalanceValueEl.textContent = '—';
+            llmBalanceValueEl.textContent = '—';
+          })
+          .finally(function() { isLoading = false; });
+      }
+
+      if (transferOpenBtn && transferPanel) {
+        transferOpenBtn.addEventListener('click', function() {
+          openTransferModal();
+        });
+      }
+
+      if (transferCloseBtn) {
+        transferCloseBtn.addEventListener('click', function() {
+          closeTransferModal();
+        });
+      }
+
+      document.addEventListener('click', function(e) {
+        if (!transferPanel || transferPanel.hidden) return;
+        var clickedInsidePanel = transferPanel.contains(e.target);
+        var clickedBalance = box && box.contains(e.target);
+        var clickedTrigger = transferOpenBtn && transferOpenBtn.contains(e.target);
+        if (!clickedInsidePanel && !clickedBalance && !clickedTrigger) {
+          closeTransferModal();
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeTransferModal();
+      });
+
+      if (transferAllEl && transferAmountEl) {
+        transferAllEl.addEventListener('change', function() {
+          transferAmountEl.disabled = transferAllEl.checked;
+          if (transferAllEl.checked) transferAmountEl.value = '';
+        });
+      }
+
+      if (transferSubmitEl && transferDirectionEl && transferAmountEl && transferAllEl) {
+        transferSubmitEl.addEventListener('click', function() {
+          var transferAll = transferAllEl.checked;
+          var amount = transferAll ? null : parseFloat(transferAmountEl.value);
+          if (!transferAll && (!amount || amount <= 0)) {
+            setTransferError('Введите сумму или отметьте «Всё»');
+            return;
+          }
+
+          var direction = transferDirectionEl.value;
+          var source = direction === 'main-llm' ? 'main' : 'llm';
+          var target = direction === 'main-llm' ? 'llm' : 'main';
+          var body = { source: source, target: target };
+          if (transferAll) body.transfer_all = true; else body.amount = amount;
+
+          setTransferError(null);
+          transferSubmitEl.disabled = true;
+          fetch('/' + encodeURIComponent(fallbackUsername) + '/api/balance/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(body),
+          })
+            .then(function(r) {
+              return r.json().catch(function() { return {}; }).then(function(data) {
+                if (!r.ok) throw new Error(parseApiError(data.detail) || 'Ошибка перевода');
+                return data;
+              });
+            })
+            .then(function(data) {
+              transferAmountEl.value = '';
+              transferAllEl.checked = false;
+              transferAmountEl.disabled = false;
+              appState.setBalances(data, 'transferSuccess');
+              var snapshot = appState.getState();
+              renderTransferBalances(snapshot);
+              renderBalances(snapshot);
+              if (window.showToast) window.showToast('Перевод выполнен', 'success');
+            })
+            .catch(function(err) {
+              setTransferError(err.message || 'Ошибка перевода');
+            })
+            .finally(function() {
+              transferSubmitEl.disabled = false;
+            });
+        });
+      }
+
+      renderBalances(appState.getState());
+      refreshBalance();
+      appState.subscribe(function(nextState, source) {
+        if (!source) return;
+        renderBalances(nextState);
+        renderTransferBalances(nextState);
+      });
+      balanceRefreshInterval = setInterval(refreshBalance, 5000);
+
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && (fallbackPage === 'dashboard' || fallbackPage === 'llm' || fallbackPage === 'spend')) {
+          refreshBalance();
+        }
+      });
+
+      window.addEventListener('beforeunload', function() {
+        if (balanceRefreshInterval) clearInterval(balanceRefreshInterval);
+      });
+    })();
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

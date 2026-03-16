@@ -1,0 +1,19 @@
+[project]
+name = "viirtuoz-vps"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "bcrypt>=4.0.0",
+    "fastapi>=0.129.0",
+    "httpx>=0.27.0",
+    "itsdangerous>=2.2.0",
+    "jinja2>=3.1.0",
+    "kubernetes>=35.0.0",
+    "pydantic-settings>=2.13.0",
+    "python-multipart>=0.0.22",
+    "requests>=2.31.0",
+    "uvicorn[standard]>=0.30.0",
+]

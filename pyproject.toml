@@ -1,0 +1,16 @@
+[project]
+name = "zip2pdf"
+version = "1.0.0"
+description = "Convert ZIP archives with code to syntax-highlighted PDFs"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fpdf2>=2.7.0",
+    "Pygments>=2.15.0",
+]
+
+[project.scripts]
+zip2pdf = "zip2pdf:main"
+
+[tool.uv]
+dev-dependencies = []

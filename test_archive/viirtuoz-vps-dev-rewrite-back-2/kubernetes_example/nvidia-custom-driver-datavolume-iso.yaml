@@ -1,0 +1,32 @@
+# DataVolume: импорт ISO-образа с драйверами по HTTP в PVC.
+# Результат — PVC с сырым содержимым ISO; клон этого PVC подключается к VM как CD-ROM (только чтение).
+# Имя PVC = имя DataVolume (например rtx-pro-6000) — его укажите в NVIDIA_CUSTOM_DRIVER_PVC_NAME.
+#
+# 1) Соберите ISO (xorriso -as mkisofs -r -J -V "LABEL" -o nvidia-driver.iso driver/)
+# 2) Разместите ISO по HTTP (python -m http.server, nginx, MinIO и т.д.)
+# 3) Подставьте url и размер storage (не меньше размера ISO), примените манифест
+# 4) Дождитесь: kubectl get datavolumes -n kvm  -> phase: Succeeded
+#
+# Если CDI выдаёт ошибку (например, воспринимает ISO как образ диска), используйте
+# вариант B в документации: PVC с файловой системой и под-загрузчик, скопируйте в него файлы драйверов.
+# См. docs/NVIDIA-CUSTOM-DRIVER.md
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: rtx-pro-6000
+  namespace: <namespace>
+  labels:
+    app.kubernetes.io/component: nvidia-custom-driver-source
+  annotations:
+    description: "NVIDIA driver ISO; do not delete unless replacing"
+spec:
+  source:
+    http:
+      url: "http://YOUR_SERVER/nvidia-driver.iso"   # замените на реальный URL ISO
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi   # не меньше размера ISO (например 3Gi для ~2.2 GB)
+    storageClassName: <storage class>  # замените на свой (например your-SC)

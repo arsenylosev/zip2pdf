@@ -1,0 +1,283 @@
+"""
+Production configuration for viirtuoz-vps.
+
+Copy to config.py: cp app/config.py.example app/config.py
+Sensitive values via env vars or .env (see env.example)
+For stub mode: run-stub-mode.sh overrides with FRONTEND_STUB_MODE=true etc.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Dict, List
+
+from pydantic import Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD: str = ""
+
+    # --- Core ---
+    SECRET_KEY: str = ""
+    DEBUG: bool = False
+
+    # --- Stub / dev ---
+    FRONTEND_STUB_MODE: bool = False
+    STUB_NODE_IP: str = ""
+
+    # --- Auth ---
+    DEMO_USERNAME: str = ""
+    DEMO_PASSWORD: str = ""
+    DEMO_USER_ID: str = "1"
+    SESSION_TIMEOUT: int = 3600
+
+    # --- Database (production) ---
+    DATABASE_URL: str = "postgresql://user:pass@postgres.kvm-multus.svc.k8s.naint.tech:5432/db"
+
+    # --- Kubernetes ---
+    K8S_NAMESPACE_PREFIX: str = "kv"
+    STORAGE_CLASS_NAME: str = ""
+
+    # --- LLM API ---
+    LLM_API_URL: str = ""
+    # Deprecated: falls back to LLM_CHAT_SHARED_TOKEN
+    LLM_API_KEY: str = ""
+    LLM_MODEL: str = ""
+
+    # --- LLM per-token (llm-service): SK token from session ---
+    LLM_SERVICE_URL: str = ""
+    # Shared service token used by chat (no per-user billing in chat UI)
+    LLM_CHAT_SHARED_TOKEN: str = ""
+    # Max number of stored API keys per user
+    LLM_USER_KEYS_MAX: int = 10
+    # Symmetric key for encrypting stored API keys in DB
+    LLM_KEYS_ENCRYPTION_KEY: str = ""
+
+    # --- LLM Auth Service (balance bridge) ---
+    LLM_AUTH_SERVICE_URL: str = ""
+    LLM_AUTH_ADMIN_TOKEN: str = ""
+
+    # --- Speech API ---
+    SPEECH_API_URL: str = ""
+    SPEECH_API_KEY: str = ""
+    SPEECH_TTS_MODEL: str = ""
+    SPEECH_TTS_OUTPUT_FORMAT: str = ""
+
+    @model_validator(mode="after")
+    def _speech_key_fallback(self) -> "Settings":
+        if not self.SPEECH_API_KEY:
+            self.SPEECH_API_KEY = self.LLM_API_KEY
+        return self
+
+    @model_validator(mode="after")
+    def _stub_defaults(self) -> "Settings":
+        if self.FRONTEND_STUB_MODE and not self.JUNIPER_EXTERNAL_IP_POOL:
+            self.JUNIPER_EXTERNAL_IP_POOL = ["192.168.100.1"]
+        return self
+
+    # --- GPU ---
+    DEFAULT_GPU_RESOURCE: str = "nvidia.com/1080ti"
+    GPU_RESOURCES_WITH_AUDIO: List[str] = []
+    NVIDIA_DRIVER_VERSIONS: List[str] = []
+    DEFAULT_NVIDIA_DRIVER: str = "535"
+    NVIDIA_GPU_RESOURCES_CUSTOM_DRIVER: List[str] = []
+    NVIDIA_CUSTOM_DRIVER_ANNOTATION_TOKEN_KEY: str = (
+        "vm.kubevirt.io/nvidia-custom-driver-token"
+    )
+    NVIDIA_CUSTOM_DRIVER_CALLBACK_PATH: str = "nvidia-custom-driver-installed"
+    APP_INTERNAL_BASE_URL: str = ""
+
+    @field_validator(
+        "GPU_RESOURCES_WITH_AUDIO",
+        "NVIDIA_DRIVER_VERSIONS",
+        "NVIDIA_GPU_RESOURCES_CUSTOM_DRIVER",
+        mode="before",
+    )
+    @classmethod
+    def _split_csv(cls, v):
+        if isinstance(v, str):
+            return [x.strip() for x in v.split(",") if x.strip()]
+        return v
+
+    # --- VM resource limits ---
+    MAX_CPU_CORES: int = 16
+    MAX_MEMORY_GB: int = 64
+    MAX_STORAGE_GB: int = 500
+    MAX_GPU_COUNT: int = 2
+
+    # --- VM defaults ---
+    VM_RUN_STRATEGY: str = "Manual"
+    DEFAULT_PACKAGES: List[str] = [
+        "openssh-server",
+        "qemu-guest-agent",
+        "curl",
+        "wget",
+        "net-tools",
+    ]
+    DEFAULT_VM_SETTINGS: Dict = Field(default_factory=lambda: {
+        "username": "ubuntu",
+        "package_update": False,
+        "package_upgrade": False,
+        "ssh_pwauth": False,
+    })
+
+    # --- Windows VM ---
+    WINDOWS_ISO_DATAVOLUME: str = "windows-10-iso"
+    WINDOWS_ISO_NAMESPACE: str = "kvm"
+    WINDOWS_GOLDEN_IMAGE_NAME: str = "windows-10-golden-image"
+    WINDOWS_GOLDEN_IMAGE_NAMESPACE: str = "kvm"
+    WINDOWS_ISO_STORAGE_GB: int = 7
+    WINDOWS_DEFAULT_CPU: int = 4
+    WINDOWS_DEFAULT_MEMORY: int = 8
+    WINDOWS_DEFAULT_STORAGE: int = 60
+    WINDOWS_MACHINE_TYPE: str = "q35"
+    WINDOWS_DEFAULT_USERNAME: str = "Administrator"
+    WINDOWS_HYPERV_FEATURES: Dict = Field(default_factory=lambda: {
+        "relaxed": {"enabled": True},
+        "vapic": {"enabled": True},
+        "spinlocks": {"enabled": True, "spinlocks": 8191},
+        "vpindex": {"enabled": True},
+        "runtime": {"enabled": True},
+        "synic": {"enabled": True},
+        "stimer": {"enabled": True},
+        "reset": {"enabled": True},
+        "frequencies": {"enabled": True},
+        "reenlightenment": {"enabled": True},
+        "tlbflush": {"enabled": True},
+        "ipi": {"enabled": True},
+    })
+    VIRTIO_DRIVERS_IMAGE: str = (
+        "quay.io/kubevirt/virtio-container-disk:latest"
+    )
+
+    # --- Image domains whitelist ---
+    ALLOWED_IMAGE_DOMAINS: List[str] = []
+
+    @field_validator("ALLOWED_IMAGE_DOMAINS", mode="before")
+    @classmethod
+    def _split_domains(cls, v):
+        if isinstance(v, str):
+            return [d.strip() for d in v.split(",") if d.strip()]
+        return v
+
+    # --- Network policy ---
+    POD_NETWORK_CIDR: str = ""
+    SERVICE_NETWORK_CIDR: str = ""
+    SERVER_NETWORK_CIDRS: List[str] = []
+
+    @field_validator("SERVER_NETWORK_CIDRS", mode="before")
+    @classmethod
+    def _split_cidrs(cls, v):
+        if isinstance(v, str):
+            return [c.strip() for c in v.split(",") if c.strip()]
+        return v
+
+    # --- Juniper router ---
+    JUNIPER_HOST: str = ""
+    JUNIPER_USER: str = ""
+    JUNIPER_SIDECAR_URL: str = ""
+    JUNIPER_EXTERNAL_IP_POOL: List[str] = []
+
+    @field_validator("JUNIPER_EXTERNAL_IP_POOL", mode="before")
+    @classmethod
+    def _split_ips(cls, v):
+        if isinstance(v, str):
+            return [ip.strip() for ip in v.split(",") if ip.strip()]
+        return v
+
+
+settings = Settings()
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatible module-level exports
+# ---------------------------------------------------------------------------
+
+SECRET_KEY = settings.SECRET_KEY
+DEBUG = settings.DEBUG
+FRONTEND_STUB_MODE = settings.FRONTEND_STUB_MODE
+STUB_NODE_IP = settings.STUB_NODE_IP
+DEMO_USERNAME = settings.DEMO_USERNAME
+DEMO_PASSWORD = settings.DEMO_PASSWORD
+DEMO_USER_ID = settings.DEMO_USER_ID
+SESSION_TIMEOUT = settings.SESSION_TIMEOUT
+DATABASE_URL = settings.DATABASE_URL
+K8S_NAMESPACE_PREFIX = settings.K8S_NAMESPACE_PREFIX
+STORAGE_CLASS_NAME = settings.STORAGE_CLASS_NAME
+LLM_API_URL = settings.LLM_API_URL
+LLM_API_KEY = settings.LLM_API_KEY
+LLM_MODEL = settings.LLM_MODEL
+LLM_SERVICE_URL = settings.LLM_SERVICE_URL
+LLM_CHAT_SHARED_TOKEN = settings.LLM_CHAT_SHARED_TOKEN
+LLM_USER_KEYS_MAX = settings.LLM_USER_KEYS_MAX
+LLM_KEYS_ENCRYPTION_KEY = settings.LLM_KEYS_ENCRYPTION_KEY
+LLM_AUTH_SERVICE_URL = settings.LLM_AUTH_SERVICE_URL
+LLM_AUTH_ADMIN_TOKEN = settings.LLM_AUTH_ADMIN_TOKEN
+SPEECH_API_URL = settings.SPEECH_API_URL
+SPEECH_API_KEY = settings.SPEECH_API_KEY
+SPEECH_TTS_MODEL = settings.SPEECH_TTS_MODEL
+SPEECH_TTS_OUTPUT_FORMAT = settings.SPEECH_TTS_OUTPUT_FORMAT
+DEFAULT_GPU_RESOURCE = settings.DEFAULT_GPU_RESOURCE
+GPU_RESOURCES_WITH_AUDIO = settings.GPU_RESOURCES_WITH_AUDIO
+NVIDIA_DRIVER_VERSIONS = settings.NVIDIA_DRIVER_VERSIONS
+DEFAULT_NVIDIA_DRIVER = settings.DEFAULT_NVIDIA_DRIVER
+NVIDIA_GPU_RESOURCES_CUSTOM_DRIVER = settings.NVIDIA_GPU_RESOURCES_CUSTOM_DRIVER
+NVIDIA_CUSTOM_DRIVER_ANNOTATION_TOKEN_KEY = (
+    settings.NVIDIA_CUSTOM_DRIVER_ANNOTATION_TOKEN_KEY
+)
+NVIDIA_CUSTOM_DRIVER_CALLBACK_PATH = settings.NVIDIA_CUSTOM_DRIVER_CALLBACK_PATH
+APP_INTERNAL_BASE_URL = settings.APP_INTERNAL_BASE_URL
+MAX_CPU_CORES = settings.MAX_CPU_CORES
+MAX_MEMORY_GB = settings.MAX_MEMORY_GB
+MAX_STORAGE_GB = settings.MAX_STORAGE_GB
+MAX_GPU_COUNT = settings.MAX_GPU_COUNT
+VM_RUN_STRATEGY = settings.VM_RUN_STRATEGY
+DEFAULT_PACKAGES = settings.DEFAULT_PACKAGES
+DEFAULT_VM_SETTINGS = settings.DEFAULT_VM_SETTINGS
+WINDOWS_ISO_DATAVOLUME = settings.WINDOWS_ISO_DATAVOLUME
+WINDOWS_ISO_NAMESPACE = settings.WINDOWS_ISO_NAMESPACE
+WINDOWS_GOLDEN_IMAGE_NAME = settings.WINDOWS_GOLDEN_IMAGE_NAME
+WINDOWS_GOLDEN_IMAGE_NAMESPACE = settings.WINDOWS_GOLDEN_IMAGE_NAMESPACE
+WINDOWS_ISO_STORAGE_GB = settings.WINDOWS_ISO_STORAGE_GB
+WINDOWS_DEFAULT_CPU = settings.WINDOWS_DEFAULT_CPU
+WINDOWS_DEFAULT_MEMORY = settings.WINDOWS_DEFAULT_MEMORY
+WINDOWS_DEFAULT_STORAGE = settings.WINDOWS_DEFAULT_STORAGE
+WINDOWS_MACHINE_TYPE = settings.WINDOWS_MACHINE_TYPE
+WINDOWS_DEFAULT_USERNAME = settings.WINDOWS_DEFAULT_USERNAME
+WINDOWS_HYPERV_FEATURES = settings.WINDOWS_HYPERV_FEATURES
+VIRTIO_DRIVERS_IMAGE = settings.VIRTIO_DRIVERS_IMAGE
+ALLOWED_IMAGE_DOMAINS = settings.ALLOWED_IMAGE_DOMAINS
+POD_NETWORK_CIDR = settings.POD_NETWORK_CIDR
+SERVICE_NETWORK_CIDR = settings.SERVICE_NETWORK_CIDR
+SERVER_NETWORK_CIDRS = settings.SERVER_NETWORK_CIDRS
+JUNIPER_HOST = settings.JUNIPER_HOST
+JUNIPER_USER = settings.JUNIPER_USER
+JUNIPER_SIDECAR_URL = settings.JUNIPER_SIDECAR_URL
+JUNIPER_EXTERNAL_IP_POOL = settings.JUNIPER_EXTERNAL_IP_POOL
+JUNIPER_EXTERNAL_IP = (
+    settings.JUNIPER_EXTERNAL_IP_POOL[0] if settings.JUNIPER_EXTERNAL_IP_POOL else ""
+)
+
+
+def is_valid_user_namespace(namespace: str | None, username: str) -> bool:
+    """Check that *namespace* matches the expected pattern for *username*,
+    starts with a letter, and contains no underscores.
+    """
+    if not namespace or not username:
+        return False
+    if not namespace[0].isalpha():
+        return False
+    if "_" in namespace:
+        return False
+    prefix = settings.K8S_NAMESPACE_PREFIX or "kv"
+    return namespace.startswith(f"{prefix}-{username.lower()}-")

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вход — Вииртуоз</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', path='images/favicon.png') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="{{ url_for('static', path='js/core/theme.js') }}"></script>
+  <style>
+    /* Brand Colors */
+    :root {
+      --brand-bg: #111827;
+      --brand-blue-deep: #0F3D5E;
+      --brand-blue-mid: #3B82A5;
+      --brand-aqua-light: #C4F0F2;
+    }
+
+    /* Light Theme */
+    :root, [data-theme="light"] {
+      --app-bg: #F9FAFB;
+      --surface: #FFFFFF;
+      --surface-muted: #F3F4F6;
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-muted: #9CA3AF;
+      --border-subtle: #E5E7EB;
+      --primary-bg: var(--brand-blue-deep);
+      --primary-hover: var(--brand-blue-mid);
+      --primary-text: #FFFFFF;
+      --error-bg: #FEE2E2;
+      --error-text: #DC2626;
+    }
+
+    /* Dark Theme */
+    [data-theme="dark"] {
+      --app-bg: #020617;
+      --surface: #0B1120;
+      --surface-muted: #111827;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --text-muted: #6B7280;
+      --border-subtle: #1F2937;
+      --primary-bg: var(--brand-blue-mid);
+      --primary-hover: var(--brand-aqua-light);
+      --primary-text: #020617;
+      --error-bg: rgba(239, 68, 68, 0.15);
+      --error-text: #EF4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--app-bg);
+      color: var(--text-primary);
+      padding: 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-wrapper {
+      background: var(--brand-bg);
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      display: inline-block;
+    }
+
+    .logo-img {
+      width: 180px;
+      height: auto;
+    }
+
+    .login-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 32px 28px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--brand-blue-mid);
+      background: var(--surface);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px 20px;
+      background: var(--primary-bg);
+      color: var(--primary-text);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-login:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-login:active {
+      transform: scale(0.98);
+    }
+
+    .error-message {
+      background: var(--error-bg);
+      color: var(--error-text);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s ease;
+    }
+
+    .theme-toggle:hover {
+      color: var(--text-primary);
+      border-color: var(--brand-blue-mid);
+    }
+
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .icon-moon { display: block; }
+    .icon-sun { display: none; }
+
+    [data-theme="dark"] .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 24px 20px;
+      }
+
+      .logo-img {
+        width: 150px;
+      }
+
+      .login-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo-wrapper">
+        <img src="{{ url_for('static', path='images/viiruoz.png') }}" alt="Вииртуоз" class="logo-img" />
+      </div>
+      <h1 class="login-title">Вход в панель управления</h1>
+      <p class="login-subtitle">Облачная платформа для бизнеса</p>
+    </div>
+
+    <div class="login-card">
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="username">Логин</label>
+          <input type="text" id="username" name="username" class="form-input" 
+                 placeholder="Введите имя пользователя" 
+                 autocomplete="username" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Пароль</label>
+          <input type="password" id="password" name="password" class="form-input" 
+                 placeholder="Введите пароль" 
+                 autocomplete="current-password" required />
+        </div>
+
+        <button type="submit" class="btn-login" id="login-btn">Войти</button>
+
+        <div id="login-error" class="error-message" style="display:none"></div>
+      </form>
+
+    </div>
+
+    <div class="login-footer">
+      © 2025 Вииртуоз
+    </div>
+  </div>
+
+  <script>
+  document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var errorEl = document.getElementById('login-error');
+    var btn = document.getElementById('login-btn');
+    errorEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Вход...';
+
+    try {
+      var resp = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        })
+      });
+      if (resp.ok) {
+        var data = await resp.json();
+        window.location.href = '/' + data.username + '/dashboard';
+      } else {
+        var err = await resp.json().catch(function() { return {}; });
+        errorEl.textContent = err.detail || 'Неверный логин или пароль';
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Войти';
+      }
+    } catch (_) {
+      errorEl.textContent = 'Ошибка подключения к серверу';
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Войти';
+    }
+  });
+  </script>
+</body>
+</html>

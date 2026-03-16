@@ -1,0 +1,177 @@
+---
+# Windows 10 Golden Image DataVolume
+# Этот DataVolume создается ОДИН РАЗ и содержит установленную Windows 10
+# При создании новых VM он будет клонироваться в новые PVC
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kvm
+  labels:
+    name: kvm
+    purpose: golden-images
+
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: windows-10-golden-image
+  namespace: kvm
+  labels:
+    app: kubevirt
+    os: windows-10
+    type: golden-image
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: "true"
+    description: "Windows 10 LTSC 2021 - Golden Image for cloning"
+spec:
+  source:
+    # ВАРИАНТ 1: Загрузить готовый qcow2 образ (рекомендуется если есть)
+    # http:
+    #   url: "https://your-storage.example.com/windows-10-ltsc-2021.qcow2"
+    
+    # ВАРИАНТ 2: Создать пустой диск для установки с ISO
+    blank: {}
+    
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 60Gi  # Windows 10 требует минимум 40-60GB
+    storageClassName: your-SC
+    volumeMode: Filesystem
+
+---
+# Временная VM для установки Windows (используйте если source: blank)
+# После установки Windows удалите эту VM, но оставьте DataVolume
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: windows-10-installer
+  namespace: kvm
+  labels:
+    app: windows-installer
+    temporary: "true"
+spec:
+  running: false  # Запустите вручную: kubectl patch vm windows-10-installer -n kvm --type merge -p '{"spec":{"running":true}}'
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: windows-10-installer
+    spec:
+      domain:
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            # Основной диск для установки Windows
+            - name: rootdisk
+              disk:
+                bus: virtio
+              bootOrder: 2
+            
+            # Windows ISO (нужно создать отдельный DataVolume с ISO)
+            - name: windows-iso
+              cdrom:
+                bus: sata
+              bootOrder: 1
+            
+            # VirtIO драйверы для Windows
+            - name: virtio-drivers
+              cdrom:
+                bus: sata
+          
+          interfaces:
+            - name: default
+              masquerade: {}
+        
+        machine:
+          type: q35  # Обязательно для Windows
+        
+        resources:
+          requests:
+            memory: 8Gi
+            cpu: 4
+        
+        # Windows оптимизации (Hyper-V enlightenments)
+        features:
+          acpi:
+            enabled: true
+          apic: {}
+          hyperv:
+            relaxed:
+              enabled: true
+            vapic:
+              enabled: true
+            spinlocks:
+              enabled: true
+              spinlocks: 8191
+            vpindex:
+              enabled: true
+            runtime:
+              enabled: true
+            synic:
+              enabled: true
+            stimer:
+              enabled: true
+            reset:
+              enabled: true
+            frequencies:
+              enabled: true
+            reenlightenment:
+              enabled: true
+            tlbflush:
+              enabled: true
+            ipi:
+              enabled: true
+      
+      networks:
+        - name: default
+          pod: {}
+      
+      volumes:
+        # Основной диск - ссылка на golden image DataVolume
+        - name: rootdisk
+          dataVolume:
+            name: windows-10-golden-image
+        
+        # Windows ISO - нужно создать отдельно (см. ниже)
+        - name: windows-iso
+          persistentVolumeClaim:
+            claimName: windows-10-iso
+        
+        # VirtIO драйверы из containerDisk
+        - name: virtio-drivers
+          containerDisk:
+            image: quay.io/kubevirt/virtio-container-disk:latest
+
+---
+# ВАЖНО: Создайте этот DataVolume ПЕРЕД установкой Windows
+# Загрузите Windows 10 ISO с официального сайта Microsoft
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: windows-10-iso
+  namespace: kvm
+  labels:
+    app: kubevirt
+    type: installation-media
+spec:
+  source:
+    # Укажите URL к Windows 10 ISO (6-7GB)
+    http:
+      url: "https://software-download.microsoft.com/download/pr/..."  # Замените на реальный URL
+    
+    # ИЛИ используйте upload для загрузки с локальной машины:
+    # upload: {}
+  
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 7Gi
+    storageClassName: your-SC
