@@ -83,10 +83,10 @@ class CodePDF(FPDF):
         self.set_font('DejaVuMono', '', 7)
         self.set_text_color(40, 40, 40)
         
-        # Calculate available width - use more of the page
+        # Calculate available width - equal left and right margins
         page_width = 595  # A4 width in points
         margin = 50
-        right_margin = 40  # slightly smaller right margin for code
+        right_margin = 50  # same as left margin
         line_num_width = 25
         avail_width = page_width - margin - right_margin
         code_width = avail_width - line_num_width  # space for line numbers
