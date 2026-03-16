@@ -113,16 +113,20 @@ class CodePDF(FPDF):
             
             # Code content - use constrained width to stay within margins
             self.set_text_color(40, 40, 40)
-            # Truncate line if too long
-            display_line = line
-            if len(display_line) > 120:
-                display_line = display_line[:117] + '...'
             
-            # Replace tabs with spaces and encode for latin-1
-            display_line = display_line.replace('\t', '    ')
+            # Replace tabs with spaces and encode for latin-1 first
+            display_line = line.replace('\t', '    ')
             display_line = display_line.encode('latin-1', 'replace').decode('latin-1')
+            
+            # Truncate if too long - use 100 chars max for safety
+            # (Courier 7pt at 495pt width ~ 100 chars)
+            max_chars = 100
+            if len(display_line) > max_chars:
+                display_line = display_line[:max_chars-3] + '...'
+            
             # Use fixed width: avail_width minus line_number_width (25)
-            self.cell(avail_width - 25, line_height, display_line)
+            code_width = avail_width - 30  # extra safety margin
+            self.cell(code_width, line_height, display_line)
             self.ln(line_height)
         
         self.ln(15)
