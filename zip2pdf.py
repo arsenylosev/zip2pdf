@@ -91,8 +91,8 @@ class CodePDF(FPDF):
         avail_width = page_width - margin - right_margin
         code_width = avail_width - line_num_width  # space for line numbers
         
-        # Char width for DejaVu Mono 7pt (~5.2pt per char on average)
-        char_width = 5.2
+        # Char width for DejaVu Mono 7pt (~4.0pt per char - fits more on line)
+        char_width = 4.0
         max_chars_per_line = int(code_width / char_width)
         
         # Split code into lines
