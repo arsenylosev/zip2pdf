@@ -83,14 +83,16 @@ class CodePDF(FPDF):
         self.set_font('DejaVuMono', '', 7)
         self.set_text_color(40, 40, 40)
         
-        # Calculate available width
+        # Calculate available width - use more of the page
         page_width = 595  # A4 width in points
         margin = 50
-        avail_width = page_width - 2 * margin
-        code_width = avail_width - 30  # space for line numbers + safety
+        right_margin = 40  # slightly smaller right margin for code
+        line_num_width = 25
+        avail_width = page_width - margin - right_margin
+        code_width = avail_width - line_num_width  # space for line numbers
         
-        # Char width for DejaVu Mono 7pt (~5.5pt per char)
-        char_width = 5.5
+        # Char width for DejaVu Mono 7pt (~5.2pt per char on average)
+        char_width = 5.2
         max_chars_per_line = int(code_width / char_width)
         
         # Split code into lines
@@ -122,7 +124,7 @@ class CodePDF(FPDF):
         total_height = len(processed_lines) * line_height + 20
         
         self.set_fill_color(250, 250, 250)
-        self.rect(margin - 5, start_y, avail_width + 10, total_height, style='F')
+        self.rect(margin - 5, start_y, code_width + line_num_width + 10, total_height, style='F')
         
         self.set_xy(margin, start_y + 10)
         
@@ -134,7 +136,7 @@ class CodePDF(FPDF):
                 self.set_fill_color(250, 250, 250)
                 # Recalculate remaining height
                 remaining = len(processed_lines) - processed_lines.index((is_cont, text, line_num))
-                self.rect(margin - 5, self.get_y() - 5, avail_width + 10, 
+                self.rect(margin - 5, self.get_y() - 5, code_width + line_num_width + 10, 
                          remaining * line_height + 15, style='F')
             
             self.set_font('DejaVuMono', '', 7)
